@@ -337,7 +337,11 @@ async function formatOutput(awsSharedCredentialsFile, awsProfile, format = null)
   try {
     const ssoPage = await page.goto(`https://accounts.google.com/o/saml2/initsso?idpid=${argv.googleIdpId}&spid=${argv.googleSpId}&forceauthn=false`)
 
-    if (/ServiceLogin/.test(ssoPage.url())) {
+    if (!ssoPage.ok()) {
+      throw new Error(`Got status code "${ssoPage.status()}" while requesting "${SAML_URL}"`);
+    }
+
+    if (/ServiceLogin|InteractiveLogin/.test(ssoPage.url())) {
       if (!isAuthenticated && !argv.headful) {
         logger.warn('User is not authenticated, spawning headful instance');
 
